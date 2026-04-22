@@ -1,0 +1,220 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+  description: Vitals Engine API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: vitals
+    description: Athlete vitals and protocol
+paths:
+  /healthz:
+    get:
+-0+58
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /vitals/current:
+    get:
+      operationId: getCurrentVitals
+      tags: [vitals]
+      summary: Get current vitals and protocol
+      description: Returns the current athlete vitals and computed daily protocol
+      responses:
+        "200":
+          description: Current vitals and protocol
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VitalsReport"
+  /vitals/update:
+    post:
+      operationId: updateVitals
+      tags: [vitals]
+      summary: Update athlete vitals
+      description: Update the current telemetry values and get a recalculated protocol
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VitalsInput"
+      responses:
+        "200":
+          description: Updated vitals and protocol
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VitalsReport"
+  /vitals/history:
+    get:
+      operationId: getVitalsHistory
+      tags: [vitals]
+      summary: Get vitals history
+      description: Returns historical vitals logs
+      responses:
+        "200":
+          description: Vitals history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VitalsHistoryResponse"
+  /vitals/prs:
+    get:
+      operationId: getPersonalRecords
+      tags: [vitals]
+      summary: Get personal records
+      description: Returns the athlete's powerlifting personal records and goal totals
+      responses:
+        "200":
+          description: Personal records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalRecords"
+components:
+  schemas:
+    HealthStatus:
+-1+133
+          type: string
+      required:
+        - status
+    VitalsInput:
+      type: object
+      properties:
+        rpe:
+          type: number
+          description: Rate of Perceived Exertion (1-10) from last squat session
+          minimum: 1
+          maximum: 10
+        painScale:
+          type: number
+          description: Knee pain scale (0-10)
+          minimum: 0
+          maximum: 10
+        scanEfficiency:
+          type: number
+          description: Soccer scanning efficiency score (0-10)
+          minimum: 0
+          maximum: 10
+        notes:
+          type: string
+          description: Optional session notes
+      required:
+        - rpe
+        - painScale
+        - scanEfficiency
+    Protocol:
+      type: object
+      properties:
+        intensity:
+          type: string
+          enum: [OPTIMAL, LOW_IMPACT, LOCKOUT]
+        focus:
+          type: string
+        recovery:
+          type: string
+      required:
+        - intensity
+        - focus
+        - recovery
+    VitalsReport:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        rpe:
+          type: number
+        painScale:
+          type: number
+        scanEfficiency:
+          type: number
+        protocol:
+          $ref: "#/components/schemas/Protocol"
+        notes:
+          type: string
+      required:
+        - date
+        - rpe
+        - painScale
+        - scanEfficiency
+        - protocol
+    VitalsEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        date:
+          type: string
+          format: date
+        rpe:
+          type: number
+        painScale:
+          type: number
+        scanEfficiency:
+          type: number
+        intensity:
+          type: string
+        focus:
+          type: string
+        recovery:
+          type: string
+        notes:
+          type: string
+      required:
+        - id
+        - date
+        - rpe
+        - painScale
+        - scanEfficiency
+        - intensity
+        - focus
+        - recovery
+    VitalsHistoryResponse:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/VitalsEntry"
+      required:
+        - entries
+    LiftRecord:
+      type: object
+      properties:
+        lbs:
+          type: number
+        kg:
+          type: number
+      required:
+        - lbs
+        - kg
+    PersonalRecords:
+      type: object
+      properties:
+        athlete:
+          type: string
+        squat:
+          $ref: "#/components/schemas/LiftRecord"
+        bench:
+          $ref: "#/components/schemas/LiftRecord"
+        deadlift:
+          $ref: "#/components/schemas/LiftRecord"
+        total:
+          $ref: "#/components/schemas/LiftRecord"
+        goalTotal:
+          $ref: "#/components/schemas/LiftRecord"
+      required:
+        - athlete
+        - squat
+        - bench
+        - deadlift
+        - total
+        - goalTotal
